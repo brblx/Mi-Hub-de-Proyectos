@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Hub de Proyectos</title>
+
+  <!-- SwiperJS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <!-- Resaltado de sintaxis Prism.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body class="dark-theme">
+
+  <header class="header">
+    <div class="header-title">
+      <h1>🚀 Mis Proyectos Hub</h1>
+      <p>Gestor de código, base de datos local y herramientas de desarrollo</p>
+    </div>
+    
+    <div class="header-actions">
+      <input type="text" id="buscador" placeholder="Buscar título, lenguaje o código...">
+      <button id="btn-theme-toggle" class="btn-theme">🌙 Tema</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Panel de Estadísticas y Respaldos -->
+    <section class="stats-panel">
+      <div class="stat-item">
+        <span class="stat-number" id="stat-total">0</span>
+        <span class="stat-label">Proyectos</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-archivos">0</span>
+        <span class="stat-label">Archivos totales</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-espacio">0 MB</span>
+        <span class="stat-label">Espacio en BD</span>
+      </div>
+      <div class="backup-actions">
+        <button id="btn-export-db" class="btn-secondary">📤 Exportar BD (.JSON)</button>
+        <label for="import-db-input" class="btn-secondary">📥 Importar BD</label>
+        <input type="file" id="import-db-input" accept=".json" style="display:none;">
+      </div>
+    </section>
+
+  <!-- Carrusel Adaptable con Título -->
+    <section class="carrusel-section" style="margin-bottom: 25px;">
+      <h2 style="font-size: 1.2rem; color: var(--blue-tag); margin-bottom: 10px; font-weight: 600; text-align: center;">Algunos de mis proyectos: </h2>
+      <div class="swiper mi-carrusel" style="margin-bottom: 0;">
+        <div class="swiper-wrapper" id="swiper-wrapper"></div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+      </div>
+    </section>
+
+    <!-- Zona de Carga Rápida Drag & Drop (.ZIP o Carpeta Completa) -->
+    <section class="drop-zone" id="drop-zone">
+      <div class="drop-zone-text">
+        📁 Arrastra un archivo <strong>.ZIP</strong> o una <strong>Carpeta</strong> aquí para importarlo como proyecto
+      </div>
+      <div class="drop-zone-inputs">
+        <label class="btn-secondary">Subir Proyecto .ZIP <input type="file" id="input-zip-file" accept=".zip" style="display:none;"></label>
+        <label class="btn-secondary">Subir Carpeta Completa <input type="file" id="input-folder" webkitdirectory directory multiple style="display:none;"></label>
+      </div>
+    </section>
+
+    <!-- Formulario para agregar / editar proyectos -->
+    <section class="form-card">
+      <h2 id="form-title">📌 Registrar Nuevo Proyecto</h2>
+      <form id="form-proyecto">
+        <input type="hidden" id="edit-proyecto-id" value="">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="titulo">Nombre del Proyecto:</label>
+            <input type="text" id="titulo" placeholder="Ej: Runner Game, Portfolio..." required>
+          </div>
+          <div class="form-group">
+            <label for="lenguaje">Categoría / Lenguajes:</label>
+            <input type="text" id="lenguaje" placeholder="Ej: HTML/CSS/JS, C#/Unity..." required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción Breve:</label>
+          <textarea id="descripcion" rows="2" placeholder="Resumen de lo que hace el proyecto..." required></textarea>
+        </div>
+
+        <div class="code-sections">
+          <div class="code-header">
+            <h3>📂 Archivos del Proyecto y Carpetas</h3>
+            <button type="button" id="btn-add-file" class="btn-secondary">+ Agregar Archivo / Imagen</button>
+          </div>
+
+          <div class="form-group">
+            <label for="codigo-html">index.html (HTML):</label>
+            <textarea id="codigo-html" rows="3" placeholder="<!-- Pega tu HTML aquí -->"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="codigo-css">styles.css (CSS):</label>
+            <textarea id="codigo-css" rows="3" placeholder="/* Pega tu CSS aquí */"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="codigo-js">script.js (JavaScript / Principal):</label>
+            <textarea id="codigo-js" rows="3" placeholder="// Pega tu JavaScript o C# aquí"></textarea>
+          </div>
+
+          <div id="extra-files-container"></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="btn-submit-form" class="btn-primary">Guardar Proyecto en BD</button>
+          <button type="button" id="btn-cancel-edit" class="btn-danger" style="display:none;" onclick="cancelarEdicion()">Cancelar Edición</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Filtros por Categoría -->
+    <div class="filters-bar" id="filters-bar">
+      <button class="filter-btn active" onclick="filtrarProyectos('todos')">Todos</button>
+      <button class="filter-btn" onclick="filtrarProyectos('favoritos')">⭐ Favoritos</button>
+      <button class="filter-btn" onclick="filtrarProyectos('web')">Web (HTML/CSS/JS)</button>
+      <button class="filter-btn" onclick="filtrarProyectos('unity')">Unity / C#</button>
+    </div>
+
+    <!-- Galería de Tarjetas -->
+    <section class="grid-proyectos" id="contenedor-proyectos"></section>
+  </main>
+
+  <!-- Modal Interactivo -->
+  <div id="modal-proyecto" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="cerrarModal()">&times;</span>
+      
+      <div class="modal-header-info">
+        <h2 id="modal-titulo"></h2>
+        <span id="modal-lenguaje" class="tag"></span>
+      </div>
+      <p id="modal-descripcion"></p>
+
+      <div class="tabs" id="modal-tabs-header"></div>
+      <div id="modal-tabs-body"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
